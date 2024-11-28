@@ -61,6 +61,7 @@ int main(int argc, char *argv[])
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
         error("ERROR connecting");
 
+    // Get the message and write to the server
     printf("Please enter the message: ");
     bzero(buffer,256);
     fgets(buffer,255,stdin);
@@ -68,6 +69,8 @@ int main(int argc, char *argv[])
     if (n < 0) 
          error("ERROR writing to socket");
     bzero(buffer,256);
+
+    // Read back from the server
     n = read(sockfd,buffer,255);
     if (n < 0) 
          error("ERROR reading from socket");
