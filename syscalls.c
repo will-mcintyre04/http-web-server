@@ -114,6 +114,9 @@ void printFileInfo(const char *filename) {
 
 
 int main (int argc, char * argv[]){
+    __uint8_t test = 254;
+    printf("%d\n\n", test);
+
     char buf[BUFSIZ];
     int n;
     int fd;
@@ -132,6 +135,33 @@ int main (int argc, char * argv[]){
     printFileInfo("server.c");
 
     fsize("testdir");
+
+    FILE * file;
+    file = fopen("server.c", "r");
+
+    // Create a buffer to store the data we read from the file
+    char buffer[5];
+    
+    // Use fread to read up to 255 characters (leaving space for the null terminator)
+    size_t bytesRead = fread(buffer, sizeof(char), sizeof(buffer) - 1, file);
+
+    // Null-terminate the string manually
+    if (bytesRead > 0) {
+        buffer[bytesRead] = '\0';  // Null-terminate the string
+        printf("Text read from file: %s\n", buffer);
+    } else {
+        printf("Error or end of file reached\n");
+    }
+
+    char ch;
+    if(fseek(file, 2, SEEK_SET) == 0){
+        ch = fgetc(file);
+        printf("%c\n", ch);
+    }
+
+    printf("%ld\n", ftell(file));
+
+    fclose(file);  // Close the file
 
     return 0;
 }
