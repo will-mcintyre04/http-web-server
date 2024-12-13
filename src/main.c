@@ -27,6 +27,7 @@ int main(int argc, char**argv){
     if (getpeername(client_socket_fd, (struct sockaddr *)&peer_addr, &peer_addr_len) < 0) {
         perror("ERROR getting client info");
     }
+    
 
     // Print the client's IP and port
     printf("Client IP address: %s\n", inet_ntoa(peer_addr.sin_addr));
