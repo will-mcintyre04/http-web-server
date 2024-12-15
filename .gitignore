@@ -54,3 +54,4 @@ dkms.conf
 # Folders
 bin/
 build/
+.vscode/

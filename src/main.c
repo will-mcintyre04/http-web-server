@@ -8,41 +8,62 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-int main(int argc, char**argv){
-    socklen_t client_length;
-    HTTP_Server http_server;
+int main(int argc, char*argv[]){
+    // File descriptor for the client socket
     int client_socket_fd;
-    struct sockaddr_in cli_addr;
+
+    socklen_t client_length; // Stores size of the address of the client
+    struct sockaddr_in cli_addr; // Structure containing IP and port
+
+    HTTP_Server http_server; // Server struct with socket/port
+
+
+    char buffer[1024]; // Server reads into this buffer
+    int portno; // Port number for the server to run on
+    int n; // Return value for the read() and write() system calls (num of chars read)
+
+    /*
+    This checks if there is a port or not (name of program, then port number)
+    argv[0] -> program name
+    argv[1] -> argument (port number)
+    */
+    if (argc < 2){
+        fprintf(stderr, "ERROR, no port provided\n");
+        exit(1);
+    }
+
+    portno = atoi(argv[1]);
 
     init_server(&http_server, 6969);
 
     client_length = sizeof(cli_addr);
+
+    // Accept system call causes the process to block until a client connects to the server
     client_socket_fd = accept(http_server.socket, (struct sockaddr *) &cli_addr, &client_length);
-    if (client_socket_fd < 0) 
+    if (client_socket_fd < 0){
         perror("ERROR on accept");
+        exit(1);
+    }
 
     // Use getpeername() to get the client info
-    struct sockaddr_in peer_addr;
-    socklen_t peer_addr_len = sizeof(peer_addr);
-    if (getpeername(client_socket_fd, (struct sockaddr *)&peer_addr, &peer_addr_len) < 0) {
+    if (getpeername(client_socket_fd, (struct sockaddr *)&cli_addr, &client_length) < 0) {
         perror("ERROR getting client info");
+        exit(1);
     }
-    
+
 
     // Print the client's IP and port
-    printf("Client IP address: %s\n", inet_ntoa(peer_addr.sin_addr));
-    printf("Client port number: %d\n", ntohs(peer_addr.sin_port));
+    printf("Client IP address: %s\n", inet_ntoa(cli_addr.sin_addr));
+    printf("Client port number: %d\n", ntohs(cli_addr.sin_port));
 
-    // // WE ONLY GET TO THIS POINT ONCE A CLIENT HAS CONNECTED TO OUR SERVER
-    // bzero(buffer,256);
-    // n = read(newserver_socket_fd,buffer,255);// Reads from socket, will block until there is somethin for it to read in the socket
-    // if (n < 0) error("ERROR reading from socket");
-    // printf("Here is the message: %s\n",buffer);
+    bzero(buffer,1024);
+    n = read(client_socket_fd,buffer,1024);// Reads from socket, will block until there is somethin for it to read in the socket
+    if (n < 0) perror("ERROR reading from socket");
+    printf("Here is the message: %s\n",buffer);
     
     
-    // n = write(newserver_socket_fd,"I got your message",18);
-    // if (n < 0) error("ERROR writing to socket");
-    // close(newserver_socket_fd);
-    // close(server_socket_fd);
+    // Close sockets
+    close(client_socket_fd);
+    close(http_server.socket);
     return 0;
 }

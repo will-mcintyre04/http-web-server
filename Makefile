@@ -43,7 +43,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 # Run the executable 
 # The run target depends on the final executable
 run: $(BIN_DIR)/$(EXEC)
-	./$(BIN_DIR)/$(EXEC)
+	./$(BIN_DIR)/$(EXEC) $(ARGS)
 
 # Clean up: remove .o files and the executable inside the bin directory
 clean:

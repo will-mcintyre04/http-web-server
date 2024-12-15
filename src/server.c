@@ -11,6 +11,11 @@
 void init_server(HTTP_Server * http_server, int port){
     http_server->port = port;
 
+    /*
+    the socket() system call creates a new socket, taking in the address domain (IPv4)
+    the type of socket (stream vs datagram) and the protocol
+    (it will automatically choose TCP for stream)
+    */
     int server_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if(server_socket_fd < 0){
         perror("Error opening socket");
@@ -51,21 +56,21 @@ void init_server(HTTP_Server * http_server, int port){
 //     char buffer[256]; // Server reads into this buffer
 //     struct sockaddr_in serv_addr, cli_addr; // Structure containing internet address (IP and port)
 //     int n; // Return value for the read() and write() system calls (num of chars read or written)
-//     /*
-//     this checks if there is a port or not (name of program, then port number)
-//     argv[0] -> program name
-//     argv[1] -> argument (port number)
-//     */
-//     if (argc < 2){
-//         fprintf(stderr, "ERROR, no port provided\n");
-//         exit(1);
-//     }
+    // /*
+    // this checks if there is a port or not (name of program, then port number)
+    // argv[0] -> program name
+    // argv[1] -> argument (port number)
+    // */
+    // if (argc < 2){
+    //     fprintf(stderr, "ERROR, no port provided\n");
+    //     exit(1);
+    // }
 
-//     /*
-//     the socket() system call creates a new socket, taking in the address domain (IPv4)
-//     the type of socket (stream vs datagram) and the protocol
-//     (it will automatically choose TCP for stream)
-//     */
+    // /*
+    // the socket() system call creates a new socket, taking in the address domain (IPv4)
+    // the type of socket (stream vs datagram) and the protocol
+    // (it will automatically choose TCP for stream)
+    // */
 //     server_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 //     if (server_socket_fd < 0)
 //         error("ERROR opening socket");
@@ -95,9 +100,9 @@ void init_server(HTTP_Server * http_server, int port){
 //     listen(server_socket_fd,5);
 
 //     clilen = sizeof(cli_addr);
-//     /*
-//     Accept system call causes the process to block until a client connects to the server
-//     */
+    /*
+    Accept system call causes the process to block until a client connects to the server
+    */
 //     newserver_socket_fd = accept(server_socket_fd, 
 //                  (struct sockaddr *) &cli_addr, 
 //                  &clilen);
