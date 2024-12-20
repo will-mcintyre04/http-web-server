@@ -42,6 +42,7 @@ int main(int argc, char*argv[]){
             exit(1);
         }
 
+        // Make child process
         pid_t pid = fork();
 
         if (pid < 0){
