@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <signal.h>
 
 int main(int argc, char*argv[]){
     int client_socket_fd; // File descriptor for the client socket
@@ -41,6 +42,9 @@ int main(int argc, char*argv[]){
             perror("ERROR on accept");
             exit(1);
         }
+
+        // Ignore the SIGCHLD signal, meaning child processes will be reaped automatically
+        signal(SIGCHLD, SIG_IGN);
 
         // Make child process
         pid_t pid = fork();
