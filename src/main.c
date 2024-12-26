@@ -34,6 +34,9 @@ int main(int argc, char*argv[]){
 
     client_length = sizeof(cli_addr);
 
+    // Ignore the SIGCHLD signal, meaning child processes will be reaped automatically
+    signal(SIGCHLD, SIG_IGN);
+
     while(1){
         // Accept system call causes the process to block until a client connects to the server
         client_socket_fd = accept(http_server.socket, (struct sockaddr *) &cli_addr, &client_length);
@@ -42,9 +45,6 @@ int main(int argc, char*argv[]){
             perror("ERROR on accept");
             exit(1);
         }
-
-        // Ignore the SIGCHLD signal, meaning child processes will be reaped automatically
-        signal(SIGCHLD, SIG_IGN);
 
         // Make child process
         pid_t pid = fork();

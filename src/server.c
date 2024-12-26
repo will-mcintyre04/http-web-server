@@ -40,23 +40,24 @@ void init_server(HTTP_Server * http_server, int port){
             }
 
     // System call that allows process to listen on the socket for connections
-    // 5 is size of backlog queue(# of connections that can be waiting)
-    listen(server_socket_fd,5);
+    // CONNECTION_QUEUE is size of backlog queue(# of connections that can be waiting)
+    listen(server_socket_fd,CONNECTION_QUEUE);
 
     http_server->socket = server_socket_fd;
+    http_server->serv_addr = serv_addr;
     printf("Server initialized and listening on port %d\n", http_server->port);
 }
 
 void print_client_info_and_read(int client_socket_fd, struct sockaddr_in *client_address){
-    char buffer[1024]; // Server reads into this buffer
+    char buffer[BUFFER_SIZE]; // Server reads into this buffer
     int n; // Return value for the read() and write() system calls (num of chars read)
     
     // Print the client's IP and port
     printf("Client IP address: %s\n", inet_ntoa(client_address->sin_addr));
     printf("Client port number: %d\n", ntohs(client_address->sin_port));
 
-    bzero(buffer,1024);
-    n = read(client_socket_fd,buffer,1024);// Reads from socket, will block until there is somethin for it to read in the socket
+    bzero(buffer,BUFFER_SIZE);
+    n = read(client_socket_fd,buffer,BUFFER_SIZE);// Reads from socket, will block until there is somethin for it to read in the socket
     if (n < 0) perror("ERROR reading from socket");
     printf("Here is the message: %s\n",buffer);
 
