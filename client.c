@@ -72,6 +72,7 @@ int main(int argc, char *argv[])
 
     // Read back from the server
     n = read(sockfd,buffer,255);
+    printf("%i\n", n);
     if (n < 0) 
          error("ERROR reading from socket");
     printf("%s\n",buffer);

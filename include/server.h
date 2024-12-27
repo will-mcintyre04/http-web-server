@@ -13,5 +13,5 @@ typedef struct HTTP_Server {
 } HTTP_Server;
 
 void init_server(HTTP_Server * http_server, int port);
-void print_client_info_and_read(int client_socket_fd, struct sockaddr_in* client_address);
+void print_client_info_and_read(int client_socket_fd, int server_socket_fd, struct sockaddr_in* client_address);
 #endif

@@ -12,8 +12,8 @@
 int main(int argc, char*argv[]){
     int client_socket_fd; // File descriptor for the client socket
 
-    socklen_t client_length; // Stores size of the address of the client
     struct sockaddr_in cli_addr; // Structure containing IP and port
+    socklen_t client_length = sizeof(cli_addr); // Stores size of the address of the client
 
     HTTP_Server http_server; // Server struct with socket/port
 
@@ -31,8 +31,6 @@ int main(int argc, char*argv[]){
 
     portno = atoi(argv[1]);
     init_server(&http_server, portno);
-
-    client_length = sizeof(cli_addr);
 
     // Ignore the SIGCHLD signal, meaning child processes will be reaped automatically
     signal(SIGCHLD, SIG_IGN);
@@ -58,7 +56,7 @@ int main(int argc, char*argv[]){
         if (pid == 0){
             close(http_server.socket);
 
-            print_client_info_and_read(client_socket_fd, &cli_addr);
+            print_client_info_and_read(client_socket_fd, http_server.socket, &cli_addr);
 
             exit(0);
         // Parent process

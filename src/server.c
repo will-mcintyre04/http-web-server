@@ -7,6 +7,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <fcntl.h>
+#include <sys/sendfile.h>
 
 void init_server(HTTP_Server * http_server, int port){
     http_server->port = port;
@@ -33,11 +35,10 @@ void init_server(HTTP_Server * http_server, int port){
     /*
     Bind system call, binds a socket to an address
     */
-    if (bind(server_socket_fd, (struct sockaddr *) &serv_addr,
-            sizeof(serv_addr)) < 0){
-            perror("ERROR on binding");
-            exit(1);
-            }
+    if (bind(server_socket_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
+        perror("ERROR on binding");
+        exit(1);
+    }
 
     // System call that allows process to listen on the socket for connections
     // CONNECTION_QUEUE is size of backlog queue(# of connections that can be waiting)
@@ -48,7 +49,7 @@ void init_server(HTTP_Server * http_server, int port){
     printf("Server initialized and listening on port %d\n", http_server->port);
 }
 
-void print_client_info_and_read(int client_socket_fd, struct sockaddr_in *client_address){
+void print_client_info_and_read(int client_socket_fd, int server_socket_fd, struct sockaddr_in *client_address){
     char buffer[BUFFER_SIZE]; // Server reads into this buffer
     int n; // Return value for the read() and write() system calls (num of chars read)
     
@@ -60,6 +61,16 @@ void print_client_info_and_read(int client_socket_fd, struct sockaddr_in *client
     n = read(client_socket_fd,buffer,BUFFER_SIZE);// Reads from socket, will block until there is somethin for it to read in the socket
     if (n < 0) perror("ERROR reading from socket");
     printf("Here is the message: %s\n",buffer);
+
+    char *f = buffer + 5;
+    printf("FILE: %s", f);
+    int opened_fd = open(f, O_RDONLY);
+    if (opened_fd == -1) {
+        perror("Error opening file");
+        return;  // Early exit if file cannot be opened
+    }
+    sendfile(client_socket_fd, opened_fd, 0, BUFFER_SIZE);
+    close(opened_fd);
 
     // Close the client socket after handling the request
     close(client_socket_fd);
