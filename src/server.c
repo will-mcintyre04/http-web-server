@@ -10,6 +10,20 @@
 #include <fcntl.h>
 #include <sys/sendfile.h>
 
+struct {
+    char *ext;
+    char *filetype;
+} extensions[] = {
+    {"html", "text/html"},
+    {"htm", "text/html"},
+    {"txt", "text/plain"},
+    {"jpg", "image/jpeg"},
+    {"jpeg", "image/jpeg"},
+    {"png", "image/png"},
+    {"gif", "image/gif"},
+    {0, 0} // End marker
+};
+
 void init_server(HTTP_Server * http_server, int port){
     http_server->port = port;
 
@@ -49,6 +63,11 @@ void init_server(HTTP_Server * http_server, int port){
     printf("Server initialized and listening on port %d\n", http_server->port);
 }
 
+// void send_response_header(int client_socket_fd, const char * status, const char * server, const char * content_type, long content_length){
+//     char header[BUFFER_SIZE];
+
+// }
+
 void print_client_info_and_read(int client_socket_fd, int server_socket_fd, struct sockaddr_in *client_address){
     char buffer[BUFFER_SIZE]; // Server reads into this buffer
     int n; // Return value for the read() and write() system calls (num of chars read)
@@ -59,18 +78,40 @@ void print_client_info_and_read(int client_socket_fd, int server_socket_fd, stru
 
     bzero(buffer,BUFFER_SIZE);
     n = read(client_socket_fd,buffer,BUFFER_SIZE);// Reads from socket, will block until there is somethin for it to read in the socket
-    if (n < 0) perror("ERROR reading from socket");
-    printf("Here is the message: %s\n",buffer);
+    if (n < 0){
+        perror("ERROR reading from socket");
+        exit(1);
+    }
+    printf("Here is the message:\n%s",buffer);
 
-    char *f = buffer + 5;
-    printf("FILE: %s", f);
-    int opened_fd = open(f, O_RDONLY);
+    if (strncmp(buffer, "GET ", 4) != 0){
+        printf("The server only accepts simple GET requests");
+        exit(1);
+    }
+
+    for(int i=4;i<BUFFER_SIZE;i++) { // null terminate after the second space to ignore extra HTTP headers
+		if(buffer[i] == ' ') {
+			buffer[i] = 0;
+			break;
+		}
+	}
+
+
+    // Check that the file type is eligible
+
+
+    char *file = buffer + 5;
+    printf("FILE: %s", file);
+    int opened_fd = open(file, O_RDONLY);
     if (opened_fd == -1) {
         perror("Error opening file");
         return;  // Early exit if file cannot be opened
     }
+    
+    // Actually send an http response to the socket instead formatted correctly 
+    
     sendfile(client_socket_fd, opened_fd, 0, BUFFER_SIZE);
-    close(opened_fd);
+    // close(opened_fd);
 
     // Close the client socket after handling the request
     close(client_socket_fd);
