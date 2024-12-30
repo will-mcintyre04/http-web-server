@@ -55,10 +55,8 @@ int main(int argc, char*argv[]){
 
         // Child process
         if (pid == 0){
-            close(http_server.socket);
-
             print_client_info_and_read(client_socket_fd, http_server.socket, &cli_addr);
-
+            close(http_server.socket);
             exit(0);
         // Parent process
         } else {
