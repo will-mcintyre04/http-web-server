@@ -1,0 +1,105 @@
+FORBIDDEN: File extension not supported:GET / HTTP/1.1
+User-Agent: PostmanRuntime/7.43.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: b21ab02c-b745-4b9a-ab44-06479b76abf4
+Host: localhost:6969
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+
+NOT FOUND: File not found:index.html HTTP/1.1
+User-Agent: PostmanRuntime/7.43.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: e1ac658b-15b3-4966-8f5e-e6cf3fd62ecd
+Host: localhost:6969
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+
+NOT FOUND: File not found:index.html HTTP/1.1
+User-Agent: PostmanRuntime/7.43.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: cf6e5c5d-f6c2-40d4-86da-b71708a17880
+Host: localhost:6969
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+
+NOT FOUND: File not found:index.html HTTP/1.1
+User-Agent: PostmanRuntime/7.43.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: d98099fd-c9c1-4884-9799-c070c457dbc5
+Host: localhost:6969
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+
+FORBIDDEN: File extension not supported:GET / HTTP/1.1
+User-Agent: PostmanRuntime/7.43.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: 2d895b42-467f-406f-9068-a879bf7e68da
+Host: localhost:6969
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+
+FORBIDDEN: File extension not supported:GET /nweb.log HTTP/1.1
+User-Agent: PostmanRuntime/7.43.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: bb5241b4-7ec2-464d-8cf3-8c1408624b29
+Host: localhost:6969
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+
+NOT FOUND: File not found:index.html HTTP/1.1
+User-Agent: PostmanRuntime/7.43.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: 6235e642-dea3-425e-8c9d-ecaa97498e98
+Host: localhost:6969
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+
+NOT FOUND: File not found:index.html HTTP/1.1
+User-Agent: PostmanRuntime/7.43.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: 2e4c21a7-023d-42e3-9bce-476db9ade21a
+Host: localhost:6969
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+
+NOT FOUND: File not found:index.html HTTP/1.1
+User-Agent: PostmanRuntime/7.43.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: 1db235f6-2f1c-45a5-a5ca-f12a070257c3
+Host: localhost:6969
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+
+NOT FOUND: File not found:index.html HTTP/1.1
+User-Agent: PostmanRuntime/7.43.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: 56506738-da0c-40ec-8dcc-5633ca9a35a3
+Host: localhost:6969
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+
+NOT FOUND: File not found:index.htmli
+NOT FOUND: File not found:index.htmli
+NOT FOUND: File not found:index.htmli
+NOT FOUND: File not found:favicon.ico
+NOT FOUND: File not found:favicon.ico

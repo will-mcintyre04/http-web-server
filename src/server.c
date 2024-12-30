@@ -9,6 +9,14 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <sys/sendfile.h>
+#include <errno.h>
+
+#define ERROR 42
+#define LOG 44
+#define FORBIDDEN 403
+#define NOTFOUND  404
+#define BUFFER_SIZE 1024
+#define CONNECTION_QUEUE 5
 
 struct {
     char *ext;
@@ -23,6 +31,44 @@ struct {
     {"gif", "image/gif"},
     {0, 0} // End marker
 };
+
+// Function to log errors and responses
+void logger(int type, char *s1, char *s2, int socket_fd) {
+    int fd;
+    char logbuffer[BUFFER_SIZE * 2];
+
+    switch (type) {
+        case ERROR:
+            sprintf(logbuffer, "ERROR: %s:%s Errno=%d exiting pid=%d", s1, s2, errno, getpid());
+            break;
+        case FORBIDDEN:
+            // Write the response header for Forbidden error
+            (void)write(socket_fd, "HTTP/1.1 403 Forbidden\nContent-Length: 185\nConnection: close\nContent-Type: text/html\n\n<html><head><title>403 Forbidden</title></head><body><h1>Forbidden</h1>The requested URL, file type or operation is not allowed on this simple static file webserver.</body></html>\n", 267);
+            sprintf(logbuffer, "FORBIDDEN: %s:%s", s1, s2);
+            break;
+        case NOTFOUND:
+            // Write the response header for Not Found error
+            (void)write(socket_fd, "HTTP/1.1 404 Not Found\nContent-Length: 136\nConnection: close\nContent-Type: text/html\n\n<html><head><title>404 Not Found</title></head><body><h1>Not Found</h1>The requested URL was not found on this server.</body></html>\n", 220);
+            sprintf(logbuffer, "NOT FOUND: %s:%s", s1, s2);
+            break;
+        case LOG:
+            sprintf(logbuffer, " INFO: %s:%s:%d", s1, s2, socket_fd);
+            break;
+    }
+
+    // Log the information to the log file
+    if ((fd = open("nweb.log", O_CREAT | O_WRONLY | O_APPEND, 0644)) >= 0) {
+        write(fd, logbuffer, strlen(logbuffer));
+        write(fd, "\n", 1);
+        close(fd);
+    }
+
+    // Exit after an error or if Forbidden/Not Found to prevent further processing
+    if (type == ERROR || type == NOTFOUND || type == FORBIDDEN){
+        exit(3);
+        printf("exiting");
+    }
+}
 
 void init_server(HTTP_Server * http_server, int port){
     http_server->port = port;
@@ -72,52 +118,90 @@ void send_response_header(int client_socket_fd, const char * status, const char 
         exit(1);
     }
 }
+// Function to handle the client request, process the file and send the response
+void handle_request(int client_socket_fd, char *buffer) {
+    int file_fd;
+    char *file;
+    long len;
+    char *file_type = NULL;
 
-void print_client_info_and_read(int client_socket_fd, int server_socket_fd, struct sockaddr_in *client_address){
-    char buffer[BUFFER_SIZE]; // Server reads into this buffer
-    int n; // Return value for the read() and write() system calls (num of chars read)
-    
+    // Check if the file extension is supported
+    for (int i = 0; extensions[i].ext != 0; i++) {
+        if (strstr(buffer, extensions[i].ext)) {
+            file_type = extensions[i].filetype;
+            break;
+        }
+    }
+
+    if (!file_type) {
+        // Log and send Forbidden error if the file extension is unsupported
+        logger(FORBIDDEN, "File extension not supported", buffer, client_socket_fd);
+        return;
+    }
+
+    // Determine the requested file path (skip "GET /")
+    file = buffer + 5;
+
+    for (int i = 5; i < BUFFER_SIZE; i++){
+        if (buffer[i] == ' '){
+            buffer[i] = 0;
+            break;
+        }
+    }
+
+    printf("FILE: %s", file);
+
+    if (access(file, F_OK) == -1) { // Check if file exists
+        // Log and send Not Found error if file does not exist
+        logger(NOTFOUND, "File not found", file, client_socket_fd);
+        return;
+    }
+
+    // Open file for reading
+    file_fd = open(file, O_RDONLY);
+    if (file_fd == -1) {
+        perror("Error opening file");
+        return;
+    }
+
+    // Get the file length
+    len = lseek(file_fd, 0, SEEK_END);
+    lseek(file_fd, 0, SEEK_SET);
+
+    // Send the HTTP response header for a successful request
+    send_response_header(client_socket_fd, "200 OK", "MySimpleServer", file_type, len);
+
+    // Send the file content using sendfile
+    sendfile(client_socket_fd, file_fd, 0, len);
+
+    close(file_fd);
+    close(client_socket_fd);
+}
+
+// Print client info and process the request
+void print_client_info_and_read(int client_socket_fd, int server_socket_fd, struct sockaddr_in *client_address) {
+    char buffer[BUFFER_SIZE];
+    int n;
+
     // Print the client's IP and port
     printf("Client IP address: %s\n", inet_ntoa(client_address->sin_addr));
     printf("Client port number: %d\n", ntohs(client_address->sin_port));
 
-    bzero(buffer,BUFFER_SIZE);
-    n = read(client_socket_fd,buffer,BUFFER_SIZE);// Reads from socket, will block until there is somethin for it to read in the socket
-    if (n < 0){
+    // Read the request from the client
+    bzero(buffer, BUFFER_SIZE);
+    n = read(client_socket_fd, buffer, BUFFER_SIZE);
+    if (n < 0) {
         perror("ERROR reading from socket");
         exit(1);
     }
-    printf("Here is the message:\n%s",buffer);
+    printf("Here is the message:\n%s", buffer);
 
-    if (strncmp(buffer, "GET ", 4) != 0){
+    // Validate the GET request
+    if (strncmp(buffer, "GET ", 4) != 0) {
         printf("The server only accepts simple GET requests");
         exit(1);
     }
 
-    for(int i=4;i<BUFFER_SIZE;i++) { // null terminate after the second space to ignore extra HTTP headers
-		if(buffer[i] == ' ') {
-			buffer[i] = 0;
-			break;
-		}
-	}
-
-
-    // Check that the file type is eligible
-
-
-    // char *file = buffer + 5;
-    // printf("FILE: %s", file);
-    // int opened_fd = open(file, O_RDONLY);
-    // if (opened_fd == -1) {
-    //     perror("Error opening file");
-    //     return;  // Early exit if file cannot be opened
-    // }
-    
-    // // Actually send an http response to the socket instead formatted correctly 
-
-    // sendfile(client_socket_fd, opened_fd, 0, BUFFER_SIZE);
-    // close(opened_fd);
-    send_response_header(client_socket_fd, "200 OK", "wills_web_server", "text/plain", BUFFER_SIZE);
-    // Close the client socket after handling the request
-    close(client_socket_fd);
+    // Process the requested file
+    handle_request(client_socket_fd, buffer);
 }
