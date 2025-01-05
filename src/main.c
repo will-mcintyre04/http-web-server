@@ -39,7 +39,6 @@ int main(int argc, char*argv[]){
         // Accept system call causes the process to block until a client connects to the server
         client_socket_fd = accept(http_server.socket, (struct sockaddr *) &cli_addr, &client_length);
 
-        printf("Client is connected \n");
         if (client_socket_fd < 0){
             perror("ERROR on accept");
             exit(1);

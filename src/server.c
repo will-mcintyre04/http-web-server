@@ -10,11 +10,13 @@
 #include <fcntl.h>
 #include <sys/sendfile.h>
 #include <errno.h>
+#include <time.h>
 
 #define ERROR 42
 #define LOG 44
 #define FORBIDDEN 403
 #define NOTFOUND  404
+#define METHOD_NOT_ALLOWED 405
 #define BUFFER_SIZE 1024
 #define CONNECTION_QUEUE 5
 
@@ -32,43 +34,69 @@ struct {
     {0, 0} // End marker
 };
 
-// Function to log errors and responses
-void logger(int type, char *s1, char *s2, int socket_fd) {
+// Helper function to get the current timestamp in a readable format
+void get_current_timestamp(char *buffer, size_t buffer_size) {
+    time_t now = time(NULL);
+    struct tm *tm_info = localtime(&now);
+    strftime(buffer, buffer_size, "%Y-%m-%d %H:%M:%S", tm_info);
+}
+
+void logger(int type, char *s1, char *s2, int socket_fd, struct sockaddr_in *client_address) {
     int fd;
     char logbuffer[BUFFER_SIZE * 2];
+    char timestamp[20];  // Buffer to hold timestamp
+    char client_ip[INET_ADDRSTRLEN]; // Buffer to hold client IP address
 
+    // Get the current timestamp
+    get_current_timestamp(timestamp, sizeof(timestamp));
+
+    // Convert the client's IP address to string
+    inet_ntop(AF_INET, &client_address->sin_addr, client_ip, sizeof(client_ip));
+
+    // Choose log type and format the message
     switch (type) {
         case ERROR:
-            sprintf(logbuffer, "ERROR: %s:%s Errno=%d exiting pid=%d", s1, s2, errno, getpid());
+            // Format log: [IP] [Date] ERROR Message
+            sprintf(logbuffer, "[%s] [%s] ERROR: %s:%s", client_ip, timestamp, s1, s2);
+            fprintf(stderr, "\033[0;31m%s\033[0m\n", logbuffer);  // Red color for errors in console
             break;
         case FORBIDDEN:
-            // Write the response header for Forbidden error
+            // Format log: [IP] [Date] FORBIDDEN Message
             (void)write(socket_fd, "HTTP/1.1 403 Forbidden\nContent-Length: 185\nConnection: close\nContent-Type: text/html\n\n<html><head><title>403 Forbidden</title></head><body><h1>Forbidden</h1>The requested URL, file type or operation is not allowed on this simple static file webserver.</body></html>\n", 267);
-            sprintf(logbuffer, "FORBIDDEN: %s:%s", s1, s2);
+            sprintf(logbuffer, "[%s] [%s] FORBIDDEN: %s:%s", client_ip, timestamp, s1, s2);
             break;
         case NOTFOUND:
-            // Write the response header for Not Found error
+            // Format log: [IP] [Date] NOT FOUND Message
             (void)write(socket_fd, "HTTP/1.1 404 Not Found\nContent-Length: 136\nConnection: close\nContent-Type: text/html\n\n<html><head><title>404 Not Found</title></head><body><h1>Not Found</h1>The requested URL was not found on this server.</body></html>\n", 220);
-            sprintf(logbuffer, "NOT FOUND: %s:%s", s1, s2);
+            sprintf(logbuffer, "[%s] [%s] NOT FOUND: %s:%s", client_ip, timestamp, s1, s2);
+            break;
+        case METHOD_NOT_ALLOWED:
+            // Format log: [IP] [Date] METHOD NOT ALLOWED Message
+            (void)write(socket_fd, 
+                "HTTP/1.1 405 Method Not Allowed\nContent-Length: 240\nConnection: close\nContent-Type: text/html\n\n"
+                "<html><head><title>405 Method Not Allowed</title></head><body><h1>405 Method Not Allowed</h1>"
+                "<p>The requested HTTP method is not allowed. This server only accepts GET requests.</p></body></html>\n", 291);
+            sprintf(logbuffer, "[%s] [%s] METHOD NOT ALLOWED: %s:%s", client_ip, timestamp, s1, s2);
             break;
         case LOG:
-            sprintf(logbuffer, " INFO: %s:%s:%d", s1, s2, socket_fd);
+            // Format log: [IP] [Date] INFO Message
+            sprintf(logbuffer, "[%s] [%s] INFO: %s:%s", client_ip, timestamp, s1, s2);
             break;
     }
 
-    // Log the information to the log file
+    // Always log detailed information to the file
     if ((fd = open("nweb.log", O_CREAT | O_WRONLY | O_APPEND, 0644)) >= 0) {
         write(fd, logbuffer, strlen(logbuffer));
         write(fd, "\n", 1);
         close(fd);
     }
 
-    // Exit after an error or if Forbidden/Not Found to prevent further processing
-    if (type == ERROR || type == NOTFOUND || type == FORBIDDEN){
+    // If it's an error, exit after logging
+    if (type == ERROR || type == NOTFOUND || type == FORBIDDEN) {
         exit(3);
-        printf("exiting");
     }
 }
+
 
 void init_server(HTTP_Server * http_server, int port){
     http_server->port = port;
@@ -119,7 +147,7 @@ void send_response_header(int client_socket_fd, const char * status, const char 
     }
 }
 // Function to handle the client request, process the file and send the response
-void handle_request(int client_socket_fd, char *buffer) {
+void handle_request(int client_socket_fd, char *buffer, struct sockaddr_in *client_address) {
     int file_fd;
     char *file;
     long len;
@@ -135,13 +163,14 @@ void handle_request(int client_socket_fd, char *buffer) {
 
     if (!file_type) {
         // Log and send Forbidden error if the file extension is unsupported
-        logger(FORBIDDEN, "File extension not supported", buffer, client_socket_fd);
+        logger(FORBIDDEN, "File extension not supported", buffer, client_socket_fd, client_address);
         return;
     }
 
     // Determine the requested file path (skip "GET /")
     file = buffer + 5;
 
+    // Renove the rest of the HTTP request from the buffer
     for (int i = 5; i < BUFFER_SIZE; i++){
         if (buffer[i] == ' '){
             buffer[i] = 0;
@@ -149,18 +178,15 @@ void handle_request(int client_socket_fd, char *buffer) {
         }
     }
 
-    printf("FILE: %s", file);
-
     if (access(file, F_OK) == -1) { // Check if file exists
-        // Log and send Not Found error if file does not exist
-        logger(NOTFOUND, "File not found", file, client_socket_fd);
+        logger(NOTFOUND, "File not found", file, client_socket_fd, client_address);
         return;
     }
 
     // Open file for reading
     file_fd = open(file, O_RDONLY);
     if (file_fd == -1) {
-        perror("Error opening file");
+        logger(ERROR, "Opening file", strerror(errno), client_socket_fd, client_address);
         return;
     }
 
@@ -178,30 +204,30 @@ void handle_request(int client_socket_fd, char *buffer) {
     close(client_socket_fd);
 }
 
-// Print client info and process the request
+// Print client info and read request
 void print_client_info_and_read(int client_socket_fd, int server_socket_fd, struct sockaddr_in *client_address) {
     char buffer[BUFFER_SIZE];
     int n;
 
-    // Print the client's IP and port
-    printf("Client IP address: %s\n", inet_ntoa(client_address->sin_addr));
-    printf("Client port number: %d\n", ntohs(client_address->sin_port));
+    // Log the connection information (client IP, connected message)
+    logger(LOG, "Client connected", "Connection established", client_socket_fd, client_address);
 
     // Read the request from the client
     bzero(buffer, BUFFER_SIZE);
     n = read(client_socket_fd, buffer, BUFFER_SIZE);
     if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
+        logger(ERROR, "Reading from socket", strerror(errno), client_socket_fd, client_address);
     }
-    printf("Here is the message:\n%s", buffer);
 
-    // Validate the GET request
+    // Validate the GET request (console message)
     if (strncmp(buffer, "GET ", 4) != 0) {
-        printf("The server only accepts simple GET requests");
-        exit(1);
+        logger(METHOD_NOT_ALLOWED, "Invalid request", "Only GET requests allowed", client_socket_fd, client_address);
+        return;
     }
+
+    // Log the received request
+    logger(LOG, "Received request", buffer, client_socket_fd, client_address);
 
     // Process the requested file
-    handle_request(client_socket_fd, buffer);
+    handle_request(client_socket_fd, buffer, client_address);
 }
