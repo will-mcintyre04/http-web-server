@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project implements a simple, multi-process HTTP server in C. The server is designed to handle multiple client connections concurrently using process-based concurrency with `fork()`. It demonstrates foundational concepts in socket programming, process management, and server architecture, making it suitable for learning and extension.
+This project implements a simple, multi-process HTTP server in C. The server is designed to handle multiple client connections concurrently using process-based concurrency. Using concepts in socket programming, process management, and server architecture, the server can fetch files and handle HTTP GET requests.
 
 ## Features
 
