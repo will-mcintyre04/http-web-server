@@ -1,4 +1,4 @@
-# Multi-Process HTTP Server in C
+# Multi-Process HTTP Server
 
 ## Overview
 
