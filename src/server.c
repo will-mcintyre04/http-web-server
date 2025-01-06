@@ -34,7 +34,47 @@ struct {
     {0, 0} // End marker
 };
 
-// Helper function to get the current timestamp in a readable format
+// Initialize the server with a socket and bind the socket to an address, then listen
+void init_server(HTTP_Server * http_server, int port){
+    http_server->port = port;
+
+    /*
+    the socket() system call creates a new socket, taking in the address domain (IPv4)
+    the type of socket (stream vs datagram) and the protocol
+    (it will automatically choose TCP for stream)
+    */
+    int server_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if(server_socket_fd < 0){
+        perror("Error opening socket");
+        exit(1);
+    }
+
+    struct sockaddr_in serv_addr;
+    // Set the server address structure fields
+    serv_addr.sin_family = AF_INET;
+    // Contains IP address of the host, IP address of the machine that the server is running,
+    // can accept incoming connections on any network interface
+    serv_addr.sin_addr.s_addr = INADDR_ANY; //Listening on all network interfaces
+    serv_addr.sin_port = htons(port); // Supports little endian computers for network byte order
+
+    /*
+    Bind system call, binds a socket to an address
+    */
+    if (bind(server_socket_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
+        perror("ERROR on binding");
+        exit(1);
+    }
+
+    // System call that allows process to listen on the socket for connections
+    // CONNECTION_QUEUE is size of backlog queue(# of connections that can be waiting)
+    listen(server_socket_fd,CONNECTION_QUEUE);
+
+    http_server->socket = server_socket_fd;
+    http_server->serv_addr = serv_addr;
+    printf("Server initialized and listening on port %d\n", http_server->port);
+}
+
+// Get the current timestamp in a readable format
 void get_current_timestamp(char *buffer, size_t buffer_size) {
     time_t now = time(NULL);
     struct tm *tm_info = localtime(&now);
@@ -86,7 +126,7 @@ void logger(int type, char *s1, char *s2, int socket_fd, struct sockaddr_in *cli
     }
 
     // Always log detailed information to the file
-    if ((fd = open("error.log", O_CREAT | O_WRONLY | O_APPEND, 0644)) >= 0) {
+    if ((fd = open("web-server.log", O_CREAT | O_WRONLY | O_APPEND, 0644)) >= 0) {
         write(fd, logbuffer, strlen(logbuffer));
         write(fd, "\n", 1);
         close(fd);
@@ -96,45 +136,6 @@ void logger(int type, char *s1, char *s2, int socket_fd, struct sockaddr_in *cli
     if (type == ERROR || type == NOTFOUND || type == FORBIDDEN) {
         exit(3);
     }
-}
-
-void init_server(HTTP_Server * http_server, int port){
-    http_server->port = port;
-
-    /*
-    the socket() system call creates a new socket, taking in the address domain (IPv4)
-    the type of socket (stream vs datagram) and the protocol
-    (it will automatically choose TCP for stream)
-    */
-    int server_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if(server_socket_fd < 0){
-        perror("Error opening socket");
-        exit(1);
-    }
-
-    struct sockaddr_in serv_addr;
-    // Set the server address structure fields
-    serv_addr.sin_family = AF_INET;
-    // Contains IP address of the host, IP address of the machine that the server is running,
-    // can accept incoming connections on any network interface
-    serv_addr.sin_addr.s_addr = INADDR_ANY; //Listening on all network interfaces
-    serv_addr.sin_port = htons(port); // Supports little endian computers for network byte order
-
-    /*
-    Bind system call, binds a socket to an address
-    */
-    if (bind(server_socket_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
-        perror("ERROR on binding");
-        exit(1);
-    }
-
-    // System call that allows process to listen on the socket for connections
-    // CONNECTION_QUEUE is size of backlog queue(# of connections that can be waiting)
-    listen(server_socket_fd,CONNECTION_QUEUE);
-
-    http_server->socket = server_socket_fd;
-    http_server->serv_addr = serv_addr;
-    printf("Server initialized and listening on port %d\n", http_server->port);
 }
 
 // Send an HTTP response header to the client socket
@@ -164,22 +165,23 @@ void handle_request_and_send_response(int client_socket_fd, char *buffer, struct
 
     if (!file_type) {
         // Log and send Forbidden error if the file extension is unsupported
-        logger(FORBIDDEN, "File extension not supported", buffer, client_socket_fd, client_address);
+        logger(FORBIDDEN, "File extension not supported", file_type, client_socket_fd, client_address);
         return;
     }
 
     // Determine the requested file path (skip "GET /")
     file = buffer + 5;
 
-    // Renove the rest of the HTTP request from the buffer
+    // Remove the rest of the HTTP request from the buffer
     for (int i = 5; i < BUFFER_SIZE; i++){
         if (buffer[i] == ' '){
             buffer[i] = 0;
             break;
         }
     }
-
-    if (access(file, F_OK) == -1) { // Check if file exists
+    
+    // Check if file exists
+    if (access(file, F_OK) == -1) {
         logger(NOTFOUND, "File not found", file, client_socket_fd, client_address);
         return;
     }
