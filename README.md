@@ -1,6 +1,10 @@
 # Multi-Process HTTP Server
 
-## Overview
+![C](https://img.shields.io/badge/C-00599C?style=for-the-badge&logo=c&logoColor=white)
+![Make](https://img.shields.io/badge/Make-00A8E8?style=for-the-badge&logo=make&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=white)
+
+## 📝 Overview
 
 This project implements a simple, lightweight, multi-process HTTP server in C. The server is designed to handle HTTP GET requests from multiple client connections concurrently using process-based concurrency. The server fetches static files and serves them with appropriate HTTP responses utilizing concepts in socket programming, TCP/IP networking communication, process management, and server architecture.
 
@@ -8,7 +12,7 @@ The server can be accessed locally using a web browser or using the client code 
 
 All information and errors are logged in a `web-server.log` file.
 
-## Features
+## ⚙️Features
 
 - **Concurrent Client Handling**: Each client connection is handled in a separate process for concurrency.
 - **Request Handling**: The server supports HTTP GET requests, serves static files, and logs connection details.
@@ -26,12 +30,12 @@ All information and errors are logged in a `web-server.log` file.
 
 ## Building and Running
 
-### Prerequisites
+### 📋 Prerequisites
 
 - GCC or another C compiler.
 - A Unix-based operating system (Linux or macOS).
 
-### Steps
+### 💻 Steps
 
 1. **Clone the Repository**  
    Download the project files from your repository or source directory.
@@ -40,7 +44,7 @@ All information and errors are logged in a `web-server.log` file.
    git clone https://github.com/will-mcintyre04/http-web-server.git
    cd http-web-server
 
-2. **Compile the Server**  
+2. **Compile the Server**    
    The server can be run locally using the Makefile provided. The `make run` command creates the required directories, compiles the c code, assembles the object files and links them together to create and run an executable.
 
    ```bash
@@ -49,7 +53,7 @@ All information and errors are logged in a `web-server.log` file.
 
    Note that you can use the `make` command to just compile and link the files without running the server.
 
-3. **Accessing the Server**
+3. **Accessing the Server**   
    Open a browser or use curl to test the server:
 
    ```bash
@@ -58,7 +62,7 @@ All information and errors are logged in a `web-server.log` file.
 
    This should return a 404 error indicating the requested resource is not found.
 
-4. **Populating the Server**
+5. **Populating the Server**   
    To populate the server with static files that can be accessed, create a file in the root directory. For example:
 
    ```bash
