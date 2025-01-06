@@ -40,7 +40,7 @@ All information and errors are logged in a `web-server.log` file.
    git clone https://github.com/will-mcintyre04/http-web-server.git
    cd http-web-server
 
-2. **Compile the Server**  
+2. **Compile the Server**    
    The server can be run locally using the Makefile provided. The `make run` command creates the required directories, compiles the c code, assembles the object files and links them together to create and run an executable.
 
    ```bash
@@ -49,7 +49,7 @@ All information and errors are logged in a `web-server.log` file.
 
    Note that you can use the `make` command to just compile and link the files without running the server.
 
-3. **Accessing the Server**
+3. **Accessing the Server**   
    Open a browser or use curl to test the server:
 
    ```bash
@@ -58,7 +58,7 @@ All information and errors are logged in a `web-server.log` file.
 
    This should return a 404 error indicating the requested resource is not found.
 
-4. **Populating the Server**
+5. **Populating the Server**   
    To populate the server with static files that can be accessed, create a file in the root directory. For example:
 
    ```bash
