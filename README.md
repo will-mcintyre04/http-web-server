@@ -68,7 +68,7 @@ All information and errors are logged in a `web-server.log` file.
    <FILL IN FILE WITH CONTENT>
 
    make run ASRGS="<port-number>"
-   curl http://localhost:<port-number>/example.txt
+   curl --output http://localhost:<port-number>/example.txt
    ```
 
    The response should contain the content of the example file created.
