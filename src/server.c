@@ -137,6 +137,7 @@ void init_server(HTTP_Server * http_server, int port){
     printf("Server initialized and listening on port %d\n", http_server->port);
 }
 
+// Send an HTTP response header to the client socket
 void send_response_header(int client_socket_fd, const char * status, const char * server, const char * content_type, long content_length){
     char header[BUFFER_SIZE];
     sprintf(header, "HTTP/1.0 %s\nServer: %s\nContent-Type: %s\nContent-Length: %ld\n\n", status, server, content_type, content_length);
@@ -146,7 +147,7 @@ void send_response_header(int client_socket_fd, const char * status, const char 
         exit(1);
     }
 }
-// Function to handle the client request, process the file and send the response
+// Handle the client request, process the file and send the response
 void handle_request_and_send_response(int client_socket_fd, char *buffer, struct sockaddr_in *client_address) {
     int file_fd;
     char *file;
@@ -205,7 +206,7 @@ void handle_request_and_send_response(int client_socket_fd, char *buffer, struct
 }
 
 // Print client info and read request
-void print_client_info_and_read(int client_socket_fd, int server_socket_fd, struct sockaddr_in *client_address) {
+void process_client_request(int client_socket_fd, int server_socket_fd, struct sockaddr_in *client_address) {
     char buffer[BUFFER_SIZE];
     int n;
 
