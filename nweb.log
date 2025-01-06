@@ -362,3 +362,41 @@ Connection: keep-alive
 
 
 [127.0.0.1] [2025-01-05 18:50:31] NOT FOUND: File not found index.htmli
+[127.0.0.1] [2025-01-05 18:53:32] INFO: Client connected:Connection established
+[127.0.0.1] [2025-01-05 18:53:32] INFO: Received request:GET /index.htmli HTTP/1.1
+User-Agent: PostmanRuntime/7.43.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: afb8d7f6-521b-422f-aaec-ee2c4364139c
+Host: localhost:6969
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+
+[127.0.0.1] [2025-01-05 18:53:32] NOT FOUND: File not found:index.htmli
+[127.0.0.1] [2025-01-05 18:54:17] INFO: Client connected:Connection established
+[127.0.0.1] [2025-01-05 18:54:17] INFO: Received request:GET /favicon.ico HTTP/1.1
+Host: localhost:6969
+Connection: keep-alive
+sec-ch-ua-platform: "Windows"
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+sec-ch-ua: "Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"
+sec-ch-ua-mobile: ?0
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: no-cors
+Sec-Fetch-Dest: image
+Referer: http://localhost:6969/index.html
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: en-US,en;q=0.9
+Cookie: _ga=GA1.1.556856755.1732741499; _ga_DNV1F2G69G=GS1.1.1733524142.22.1.1733524164.0.0.0
+
+
+[127.0.0.1] [2025-01-05 18:54:17] NOT FOUND: File not found:favicon.ico
+[127.0.0.1] [2025-01-05 18:54:17] INFO: Client connected:Connection established
+[127.0.0.1] [2025-01-05 18:54:18] INFO: Client connected:Connection established
+[127.0.0.1] [2025-01-05 18:55:25] METHOD NOT ALLOWED: Invalid request:Only GET requests allowed
+[127.0.0.1] [2025-01-05 18:55:25] METHOD NOT ALLOWED: Invalid request:Only GET requests allowed
+[127.0.0.1] [2025-01-05 18:59:17] INFO: Client connected:Connection established
+[127.0.0.1] [2025-01-05 18:59:17] INFO: Received request:GET /index.htmli HTTP/1.1
+[127.0.0.1] [2025-01-05 18:59:17] NOT FOUND: File not found:index.htmli

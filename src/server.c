@@ -63,12 +63,12 @@ void logger(int type, char *s1, char *s2, int socket_fd, struct sockaddr_in *cli
         case FORBIDDEN:
             // Format log: [IP] [Date] FORBIDDEN Message
             (void)write(socket_fd, "HTTP/1.1 403 Forbidden\nContent-Length: 185\nConnection: close\nContent-Type: text/html\n\n<html><head><title>403 Forbidden</title></head><body><h1>Forbidden</h1>The requested URL, file type or operation is not allowed on this simple static file webserver.</body></html>\n", 267);
-            sprintf(logbuffer, "[%s] [%s] FORBIDDEN: %s:%s", client_ip, timestamp, s1, s2);
+            sprintf(logbuffer, "[%s] [%s] FORBIDDEN: %s: %s", client_ip, timestamp, s1, s2);
             break;
         case NOTFOUND:
             // Format log: [IP] [Date] NOT FOUND Message
             (void)write(socket_fd, "HTTP/1.1 404 Not Found\nContent-Length: 136\nConnection: close\nContent-Type: text/html\n\n<html><head><title>404 Not Found</title></head><body><h1>Not Found</h1>The requested URL was not found on this server.</body></html>\n", 220);
-            sprintf(logbuffer, "[%s] [%s] NOT FOUND: %s:%s", client_ip, timestamp, s1, s2);
+            sprintf(logbuffer, "[%s] [%s] NOT FOUND: %s: %s", client_ip, timestamp, s1, s2);
             break;
         case METHOD_NOT_ALLOWED:
             // Format log: [IP] [Date] METHOD NOT ALLOWED Message
@@ -76,11 +76,11 @@ void logger(int type, char *s1, char *s2, int socket_fd, struct sockaddr_in *cli
                 "HTTP/1.1 405 Method Not Allowed\nContent-Length: 240\nConnection: close\nContent-Type: text/html\n\n"
                 "<html><head><title>405 Method Not Allowed</title></head><body><h1>405 Method Not Allowed</h1>"
                 "<p>The requested HTTP method is not allowed. This server only accepts GET requests.</p></body></html>\n", 291);
-            sprintf(logbuffer, "[%s] [%s] METHOD NOT ALLOWED: %s:%s", client_ip, timestamp, s1, s2);
+            sprintf(logbuffer, "[%s] [%s] METHOD NOT ALLOWED: %s: %s", client_ip, timestamp, s1, s2);
             break;
         case LOG:
             // Format log: [IP] [Date] INFO Message
-            sprintf(logbuffer, "[%s] [%s] INFO: %s:%s", client_ip, timestamp, s1, s2);
+            sprintf(logbuffer, "[%s] [%s] INFO: %s: %s", client_ip, timestamp, s1, s2);
             break;
     }
 
@@ -209,7 +209,7 @@ void print_client_info_and_read(int client_socket_fd, int server_socket_fd, stru
     char buffer[BUFFER_SIZE];
     int n;
 
-    // Log the connection information (client IP, connected message)
+    // Log the connection information
     logger(LOG, "Client connected", "Connection established", client_socket_fd, client_address);
 
     // Read the request from the client
@@ -223,6 +223,14 @@ void print_client_info_and_read(int client_socket_fd, int server_socket_fd, stru
     if (strncmp(buffer, "GET ", 4) != 0) {
         logger(METHOD_NOT_ALLOWED, "Invalid request", "Only GET requests allowed", client_socket_fd, client_address);
         return;
+    }
+
+    // Remove headers after the request line
+    char *line_end = strstr(buffer, "\r\n");
+    
+    if (line_end != NULL) {
+        // Null-terminate the string at the end of the request line
+        *line_end = '\0';
     }
 
     // Log the received request
