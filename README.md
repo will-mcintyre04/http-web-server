@@ -1,5 +1,9 @@
 # Multi-Process HTTP Server
 
+![C](https://img.shields.io/badge/C-00599C?style=for-the-badge&logo=c&logoColor=white)
+![Make](https://img.shields.io/badge/Make-00A8E8?style=for-the-badge&logo=make&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=white)
+
 ## 📝 Overview
 
 This project implements a simple, lightweight, multi-process HTTP server in C. The server is designed to handle HTTP GET requests from multiple client connections concurrently using process-based concurrency. The server fetches static files and serves them with appropriate HTTP responses utilizing concepts in socket programming, TCP/IP networking communication, process management, and server architecture.
