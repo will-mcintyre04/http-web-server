@@ -56,36 +56,37 @@ void logger(int type, char *s1, char *s2, int socket_fd, struct sockaddr_in *cli
     // Choose log type and format the message
     switch (type) {
         case ERROR:
-            // Format log: [IP] [Date] ERROR Message
             sprintf(logbuffer, "[%s] [%s] ERROR: %s:%s", client_ip, timestamp, s1, s2);
             fprintf(stderr, "\033[0;31m%s\033[0m\n", logbuffer);  // Red color for errors in console
             break;
         case FORBIDDEN:
-            // Format log: [IP] [Date] FORBIDDEN Message
-            (void)write(socket_fd, "HTTP/1.1 403 Forbidden\nContent-Length: 185\nConnection: close\nContent-Type: text/html\n\n<html><head><title>403 Forbidden</title></head><body><h1>Forbidden</h1>The requested URL, file type or operation is not allowed on this simple static file webserver.</body></html>\n", 267);
+            (void)write(socket_fd,
+                "HTTP/1.1 403 Forbidden\nConnection: close\nContent-Type: text/html\n\n"
+                "<html><head><title>403 Forbidden</title></head><body><h1>Forbidden</h1>The requested URL, "
+                "file type or operation is not allowed on this simple static file webserver.</body></html>\n", 247);
             sprintf(logbuffer, "[%s] [%s] FORBIDDEN: %s: %s", client_ip, timestamp, s1, s2);
             break;
         case NOTFOUND:
-            // Format log: [IP] [Date] NOT FOUND Message
-            (void)write(socket_fd, "HTTP/1.1 404 Not Found\nContent-Length: 136\nConnection: close\nContent-Type: text/html\n\n<html><head><title>404 Not Found</title></head><body><h1>Not Found</h1>The requested URL was not found on this server.</body></html>\n", 220);
+            (void)write(socket_fd,
+                "HTTP/1.1 404 Not Found\nConnection: close\nContent-Type: text/html\n\n"
+                "<html><head><title>404 Not Found</title></head><body><h1>Not Found</h1>"
+                "The requested URL was not found on this server.</body></html>\n", 200);
             sprintf(logbuffer, "[%s] [%s] NOT FOUND: %s: %s", client_ip, timestamp, s1, s2);
             break;
         case METHOD_NOT_ALLOWED:
-            // Format log: [IP] [Date] METHOD NOT ALLOWED Message
             (void)write(socket_fd, 
-                "HTTP/1.1 405 Method Not Allowed\nContent-Length: 240\nConnection: close\nContent-Type: text/html\n\n"
+                "HTTP/1.1 405 Method Not Allowed\nConnection: close\nContent-Type: text/html\n\n"
                 "<html><head><title>405 Method Not Allowed</title></head><body><h1>405 Method Not Allowed</h1>"
-                "<p>The requested HTTP method is not allowed. This server only accepts GET requests.</p></body></html>\n", 291);
+                "<p>The requested HTTP method is not allowed. This server only accepts GET requests.</p></body></html>\n", 271);
             sprintf(logbuffer, "[%s] [%s] METHOD NOT ALLOWED: %s: %s", client_ip, timestamp, s1, s2);
             break;
         case LOG:
-            // Format log: [IP] [Date] INFO Message
             sprintf(logbuffer, "[%s] [%s] INFO: %s: %s", client_ip, timestamp, s1, s2);
             break;
     }
 
     // Always log detailed information to the file
-    if ((fd = open("nweb.log", O_CREAT | O_WRONLY | O_APPEND, 0644)) >= 0) {
+    if ((fd = open("error.log", O_CREAT | O_WRONLY | O_APPEND, 0644)) >= 0) {
         write(fd, logbuffer, strlen(logbuffer));
         write(fd, "\n", 1);
         close(fd);
@@ -96,7 +97,6 @@ void logger(int type, char *s1, char *s2, int socket_fd, struct sockaddr_in *cli
         exit(3);
     }
 }
-
 
 void init_server(HTTP_Server * http_server, int port){
     http_server->port = port;
@@ -147,7 +147,7 @@ void send_response_header(int client_socket_fd, const char * status, const char 
     }
 }
 // Function to handle the client request, process the file and send the response
-void handle_request(int client_socket_fd, char *buffer, struct sockaddr_in *client_address) {
+void handle_request_and_send_response(int client_socket_fd, char *buffer, struct sockaddr_in *client_address) {
     int file_fd;
     char *file;
     long len;
@@ -186,7 +186,7 @@ void handle_request(int client_socket_fd, char *buffer, struct sockaddr_in *clie
     // Open file for reading
     file_fd = open(file, O_RDONLY);
     if (file_fd == -1) {
-        logger(ERROR, "Opening file", strerror(errno), client_socket_fd, client_address);
+        logger(ERROR, "Opening file", file, client_socket_fd, client_address);
         return;
     }
 
@@ -195,7 +195,7 @@ void handle_request(int client_socket_fd, char *buffer, struct sockaddr_in *clie
     lseek(file_fd, 0, SEEK_SET);
 
     // Send the HTTP response header for a successful request
-    send_response_header(client_socket_fd, "200 OK", "MySimpleServer", file_type, len);
+    send_response_header(client_socket_fd, "200 OK", "WillsWebServer", file_type, len);
 
     // Send the file content using sendfile
     sendfile(client_socket_fd, file_fd, 0, len);
@@ -208,9 +208,6 @@ void handle_request(int client_socket_fd, char *buffer, struct sockaddr_in *clie
 void print_client_info_and_read(int client_socket_fd, int server_socket_fd, struct sockaddr_in *client_address) {
     char buffer[BUFFER_SIZE];
     int n;
-
-    // Log the connection information
-    logger(LOG, "Client connected", "Connection established", client_socket_fd, client_address);
 
     // Read the request from the client
     bzero(buffer, BUFFER_SIZE);
@@ -237,5 +234,5 @@ void print_client_info_and_read(int client_socket_fd, int server_socket_fd, stru
     logger(LOG, "Received request", buffer, client_socket_fd, client_address);
 
     // Process the requested file
-    handle_request(client_socket_fd, buffer, client_address);
+    handle_request_and_send_response(client_socket_fd, buffer, client_address);
 }
