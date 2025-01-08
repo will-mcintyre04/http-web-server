@@ -58,7 +58,7 @@ All information and errors are logged in a `web-server.log` file.
    Open a browser or use curl to test the server:
 
    ```bash
-   curl http://localhost:<port-number>/index.html
+   curl --output http://localhost:<port-number>/index.html
    ```
 
    This should return a 404 error indicating the requested resource is not found.
