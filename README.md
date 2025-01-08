@@ -20,6 +20,7 @@ All information and errors are logged in a `web-server.log` file.
 - **Signal Handling**: Automatically reaps child processes with `SIGCHLD` to prevent zombie processes.
 - **File Serving**: Supports multiple file types (HTML, HTM, TXT, GIF, JPG, JPEG, PNG) and returns appropriate HTTP headers and content to clients.
 - **Modular Design**: Clearly separates server initialization, connection handling, and request processing for maintainability.
+- **Response Sending**: Correctly formats HTTP server responses based off of status code from request (ie 404, 405, 200, 500).
 
 ## How It Works
 
