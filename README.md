@@ -27,7 +27,7 @@ All information and errors are logged in a `web-server.log` file.
 1. **Initialization**: The server creates a socket, binds it to a specified port, and listens for incoming connections.
 2. **Connection Handling**: The `accept()` call blocks until a client connects. Upon connection, the server creates a child process with `fork()` to handle the client.
 3. **Request Processing**: The child process handles the client’s request and logs the connection details. The parent process continues to listen for new connections.
-4. **Response**: The server then sends a response back to the client with the requested file, or an error message detailing the request/server error.
+4. **Response**: The server then sends a response back to the client with the requested file, or an error message detailing the request/server error along with an HTTP status code.
 
 ## Building and Running
 
